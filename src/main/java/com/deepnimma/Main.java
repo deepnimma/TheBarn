@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         String host = "localhost"; // Change to the server's hostname or IP as needed.
         int port = 12345;          // Must match the server's port.
 
@@ -17,36 +17,41 @@ public class Main {
              BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              // Reader for user input.
              BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in))) {
-
             System.out.println("Connected to the server at " + host + ":" + port);
-            
-            // Thread to continuously read messages from the server.
+
+            // Thread to continously read messages from the server
             Thread listenerThread = new Thread(() -> {
                 String serverMsg;
+
                 try {
                     while ((serverMsg = reader.readLine()) != null) {
                         System.out.println("Server: " + serverMsg);
-                    }
+                    } // while
+
+                    System.out.println("Server closed the connection.");
                 } catch (Exception e) {
                     System.out.println("Disconnected from the server.");
-                }
+                } // try-catch
             });
+
+            listenerThread.setDaemon(true);
             listenerThread.start();
 
-            // Main thread handles sending messages to the server.
             String userInput;
             while ((userInput = consoleReader.readLine()) != null) {
                 writer.println(userInput);
-                // If the user types "bye", break the loop and close the connection.
+
+                // If "bye" is sent, wait a moment for the final response
                 if ("bye".equalsIgnoreCase(userInput.trim())) {
+                    Thread.sleep(500);
                     break;
-                }
-            }
-            
-            System.out.println("Connection closed.");
+                } // if
+            } // while
+
+            System.out.println("Closing client.");
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-}
+        } // try-catch
+    } // main
+} // Main
 
